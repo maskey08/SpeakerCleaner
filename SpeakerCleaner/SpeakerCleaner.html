@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Audio Output Selector</title>
+  </head>
+  <body>
+    <h1>Select Audio Output Device</h1>
+    <select id="audioOutputSelect"></select>
+    <br /><br />
+    <button id="playSound">Play Sound</button>
+
+    <!-- Audio element -->
+    <audio id="audioElement" controls>
+      <source src="sound.mp3" type="video/mp4" />
+      Your browser does not support the audio element.
+    </audio>
+
+    <script>
+      const audioElement = document.getElementById("audioElement");
+      const audioSelect = document.getElementById("audioOutputSelect");
+
+      // Populate output device list
+      async function getAudioDevices() {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const audioOutputs = devices.filter((d) => d.kind === "audiooutput");
+        audioSelect.innerHTML = ""; // Clear existing
+        audioOutputs.forEach((device) => {
+          const option = document.createElement("option");
+          option.value = device.deviceId;
+          option.text = device.label || `Speaker (${device.deviceId})`;
+          audioSelect.appendChild(option);
+        });
+      }
+
+      // Change output device
+      async function setOutputDevice(deviceId) {
+        if (typeof audioElement.setSinkId !== "undefined") {
+          try {
+            await audioElement.setSinkId(deviceId);
+            console.log("Output device set to", deviceId);
+          } catch (error) {
+            console.error("Error setting output device:", error);
+          }
+        } else {
+          alert("Your browser does not support selecting audio output device.");
+        }
+      }
+
+      // Event listeners
+      audioSelect.addEventListener("change", () => {
+        setOutputDevice(audioSelect.value);
+      });
+
+      document.getElementById("playSound").addEventListener("click", () => {
+        audioElement.play();
+      });
+
+      // Request permission to access devices
+      navigator.mediaDevices
+        .getUserMedia({ audio: true })
+        .then(getAudioDevices)
+        .catch((err) => console.error("Permission denied or error:", err));
+    </script>
+  </body>
+</html>
